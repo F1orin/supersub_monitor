@@ -1,0 +1,31 @@
+# Django-related files
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+
+# Python bytecode
+*.pyc
+__pycache__/
+
+# Virtual environment
+venv/
+
+# Visual Studio Code files
+.vscode/
+*.code-workspace
+
+# macOS files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# PyCharm files
+.idea/
+
+# Other
+*.swp
+.env
+chromedriver
