@@ -10,7 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 def parse_available_matches(city: str) -> list:
 
-    chrome_driver_path = './drivers/chromedriver'  # Update with the correct path
+    chrome_driver_path = './drivers/chromedriver'
     chrome_service = Service(chrome_driver_path)
     chrome_options = Options()
     chrome_options.add_argument('--headless')
