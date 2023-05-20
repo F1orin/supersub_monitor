@@ -8,7 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 
 
-def parse_available_matches() -> list:
+def parse_available_matches(city: str) -> list:
 
     chrome_driver_path = './drivers/chromedriver'  # Update with the correct path
     chrome_service = Service(chrome_driver_path)
@@ -18,7 +18,6 @@ def parse_available_matches() -> list:
 
     userid = os.getenv('URBANSOCCER_AUTH_USERID')
     token = os.getenv('URBANSOCCER_AUTH_TOKEN')
-    city = os.getenv('URBANSOCCER_TARGET_CITY')
 
     driver.get('https://my.urbansoccer.fr/')
 
