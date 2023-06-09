@@ -28,4 +28,5 @@ venv/
 # Other
 *.swp
 .env
-chromedriver
+chromedriver_macos
+chromedriver_linux
