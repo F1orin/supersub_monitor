@@ -17,6 +17,7 @@ def get_driver():
     chrome_service = Service(chrome_driver_path)
     chrome_options = Options()
     chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--no-sandbox')
     driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
     return driver
 
