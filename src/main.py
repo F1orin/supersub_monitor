@@ -5,7 +5,7 @@ from telegram_handler import start_telegram_bot
 
 
 def main():
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.WARNING)
 
     load_dotenv()
 
