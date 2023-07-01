@@ -30,10 +30,6 @@ def get_driver_path():
         path = path_prefix + CHROMEDRIVER_LINUX
     else:
         raise RuntimeError(f'Unsupported operating system detected: {system}')
-
-    if not os.path.exists(path):
-        raise RuntimeError(f'Chromedriver not found by path: {path}')
-
     return path
 
 
