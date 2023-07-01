@@ -19,9 +19,10 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 async def check_command(update: Update, context: ContextTypes.DEFAULT_TYPE, city: str) -> None:
     """Check for available Supersub matches when the command /check is issued."""
-    matches = supersub.parse_available_matches(city)
-    message = prepare_message(city, matches)
-    await update.message.reply_text(message)
+    telegram_message = await update.message.reply_text('Checking available matches...')
+    matches_data = supersub.parse_available_matches(city)
+    matches_message = prepare_message(city, matches_data)
+    await telegram_message.edit_text(matches_message)
 
 
 def start_telegram_bot(token, city):
