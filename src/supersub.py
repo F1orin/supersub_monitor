@@ -1,5 +1,6 @@
 import logging
 import os
+import platform
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -10,10 +11,35 @@ from selenium.webdriver.support import expected_conditions as EC
 
 log = logging.getLogger(__name__)
 
+SYSTEM_DARWIN = 'Darwin'
+SYSTEM_LINUX = 'Linux'
+
+CHROMEDRIVER_MAC = 'chromedriver_macos'
+CHROMEDRIVER_LINUX = 'chromedriver_linux'
+
+
+def get_driver_path():
+    path_prefix = './drivers/'
+    path = None
+    system = platform.system()
+    if system == SYSTEM_DARWIN:
+        log.info('Selecting chromedriver for MacOS')
+        path = path_prefix + CHROMEDRIVER_MAC
+    elif system == SYSTEM_LINUX:
+        log.info('Selecting chromedriver for Linux')
+        path = path_prefix + CHROMEDRIVER_LINUX
+    else:
+        raise RuntimeError(f'Unsupported operating system detected: {system}')
+
+    if not os.path.exists(path):
+        raise RuntimeError(f'Chromedriver not found by path: {path}')
+
+    return path
+
 
 def get_driver():
     time.sleep(3)
-    chrome_driver_path = './drivers/chromedriver_macos'
+    chrome_driver_path = get_driver_path()
     chrome_service = Service(chrome_driver_path)
     chrome_options = Options()
     chrome_options.add_argument('--headless')
