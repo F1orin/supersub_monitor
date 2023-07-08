@@ -18,6 +18,10 @@ CHROMEDRIVER_MAC = 'chromedriver_macos'
 CHROMEDRIVER_LINUX = 'chromedriver_linux'
 
 
+class UnsupportedOSError(Exception):
+    pass
+
+
 def get_driver_path():
     path_prefix = './drivers/'
     path = None
@@ -29,13 +33,18 @@ def get_driver_path():
         log.info('Selecting chromedriver for Linux')
         path = path_prefix + CHROMEDRIVER_LINUX
     else:
-        raise RuntimeError(f'Unsupported operating system detected: {system}')
+        raise UnsupportedOSError(
+            f'Unsupported operating system detected: {system}')
     return path
 
 
 def get_driver():
     time.sleep(3)
-    chrome_driver_path = get_driver_path()
+    try:
+        chrome_driver_path = get_driver_path()
+    except UnsupportedOSError as error:
+        log.error(f'Could not get Chromedriver path: {error}')
+        raise
     chrome_service = Service(chrome_driver_path)
     chrome_options = Options()
     chrome_options.add_argument('--headless')
@@ -45,10 +54,11 @@ def get_driver():
 
 
 def parse_available_matches(city: str) -> list:
-
-    log.debug('Getting driver...')
-    driver = get_driver()
-    log.debug('...driver loaded successfully')
+    try:
+        driver = get_driver()
+    except UnsupportedOSError as error:
+        log.error(f'Could not get Chromedriver: {error}')
+        raise
 
     userid = os.getenv('URBANSOCCER_AUTH_USERID')
     token = os.getenv('URBANSOCCER_AUTH_TOKEN')

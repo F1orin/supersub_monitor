@@ -20,9 +20,12 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def check_command(update: Update, context: ContextTypes.DEFAULT_TYPE, city: str) -> None:
     """Check for available Supersub matches when the command /check is issued."""
     telegram_message = await update.message.reply_text('Checking available matches...')
-    matches_data = supersub.parse_available_matches(city)
-    matches_message = prepare_message(city, matches_data)
-    await telegram_message.edit_text(matches_message)
+    try:
+        matches_data = supersub.parse_available_matches(city)
+        matches_message = prepare_message(city, matches_data)
+        await telegram_message.edit_text(matches_message)
+    except supersub.UnsupportedOSError as error:
+        await telegram_message.edit_text(f'Error occured: {error}')
 
 
 def start_telegram_bot(token, city):
