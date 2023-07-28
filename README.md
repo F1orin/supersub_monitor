@@ -23,8 +23,10 @@ I felt the need of receiving the reports about available matches easier and quic
 ## Features
 
 * Written in Python
+* Tested with pytest
 * Scrapes the UrbanSoccer web portal using Selenium and ChromeDriver
 * Integration with Telegram powered by python-telegram-bot
+* Continuous Deployment implemented with GitHub Actions
 * Deployed on Google Cloud Platform, on a free tier Compute Engine VM
 * Wrapped in systemd service
 
@@ -41,8 +43,6 @@ I felt the need of receiving the reports about available matches easier and quic
     2. Provide UrbanSoccer credentials
     3. Configure Telegram bot
 7. Create and run systemd service
-
-(detailed instructions coming soon)
 
 
 ## Usage

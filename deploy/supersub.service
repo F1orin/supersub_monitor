@@ -1,0 +1,13 @@
+# /etc/systemd/system/supersub.service
+
+[Unit]
+Description=UrbanSoccer Supersub Service
+After=network.target
+
+[Service]
+ExecStart=/opt/supersub_monitor/.venv/bin/python /opt/supersub_monitor/src/main.py
+WorkingDirectory=/opt/supersub_monitor/src
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
