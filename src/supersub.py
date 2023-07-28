@@ -70,7 +70,8 @@ def get_driver():
     chrome_options = Options()
 
     try:
-        chrome_options.binary_location = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+        chrome_path = get_chrome_path()
+        chrome_options.binary_location = chrome_path
     except UnsupportedOSError as chrome_error:
         log.error(f'Could not get Chrome path: {chrome_error}')
         raise
