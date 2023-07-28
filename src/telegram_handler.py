@@ -1,7 +1,11 @@
+import logging
+import selenium
 import supersub
 from functools import partial
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
+
+log = logging.getLogger(__name__)
 
 
 def prepare_message(city: str, matches: list) -> str:
@@ -24,8 +28,12 @@ async def check_command(update: Update, context: ContextTypes.DEFAULT_TYPE, city
         matches_data = supersub.parse_available_matches(city)
         matches_message = prepare_message(city, matches_data)
         await telegram_message.edit_text(matches_message)
-    except supersub.UnsupportedOSError as error:
-        await telegram_message.edit_text(f'Error occured: {error}')
+    except supersub.UnsupportedOSError as os_error:
+        log.exception('Unsupported OS exceptions occured')
+        await telegram_message.edit_text(f'Error occured: {os_error}')
+    except selenium.common.exceptions.WebDriverException as driver_error:
+        log.exception('Selenium WebDriverException occured')
+        await telegram_message.edit_text(f'Selenium WebDriverException occured')
 
 
 def start_telegram_bot(token, city):
