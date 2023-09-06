@@ -2,6 +2,7 @@
 
 An application that reports to Telegram bot available matches for UrbanSoccer Supersub.
 
+<img src="https://github.com/F1orin/supersub_monitor/blob/main/Screenshot.jpg" width="200">
 
 ## Table of Contents
 
