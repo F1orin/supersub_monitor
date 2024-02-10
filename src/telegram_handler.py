@@ -24,7 +24,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await update.message.reply_text(help_message)
 
 
-async def check_command(city: str, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def check_command(update: Update, context: ContextTypes.DEFAULT_TYPE, city: str) -> None:
     """Check for available Supersub matches when the command /check is issued."""
     telegram_message = await update.message.reply_text('Checking available matches...')
     try:
@@ -39,10 +39,10 @@ async def check_command(city: str, update: Update, context: ContextTypes.DEFAULT
         await telegram_message.edit_text(f'Selenium WebDriverException occured')
 
 
-async def send_message(context: ContextTypes.DEFAULT_TYPE) -> None:
+async def send_message(context: ContextTypes.DEFAULT_TYPE, city: str) -> None:
     """Send the message."""
     job = context.job
-    await context.bot.send_message(job.chat_id, text='qwe')
+    await context.bot.send_message(job.chat_id, text=f'City={city}')
 
 
 def remove_jobs(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -52,10 +52,12 @@ def remove_jobs(context: ContextTypes.DEFAULT_TYPE) -> None:
         job.schedule_removal()
 
 
-async def start_recurring_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def start_recurring_command(update: Update, context: ContextTypes.DEFAULT_TYPE, city: str) -> None:
     """Start regular checks for SuperSub matches."""
     chat_id = update.effective_message.chat_id
-    context.job_queue.run_repeating(send_message, interval=5, chat_id=chat_id)
+    send_message_with_city = partial(send_message, city=city)
+    context.job_queue.run_repeating(
+        send_message_with_city, interval=5, chat_id=chat_id, name=str(chat_id))
     text = 'Recurring updates started'
     await update.message.reply_text(text)
 
@@ -70,12 +72,17 @@ async def stop_recurring_command(update: Update, context: ContextTypes.DEFAULT_T
 def start_telegram_bot(token, city):
     application = Application.builder().token(token).build()
 
-    check_command_with_city = partial(check_command, city=city)
+    check_command_with_city = partial(
+        check_command, city=city)
+    start_recurring_command_with_city = partial(
+        start_recurring_command, city=city)
 
-    application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("check", check_command_with_city))
     application.add_handler(CommandHandler(
-        "subscribe", start_recurring_command))
+        "help", help_command))
+    application.add_handler(CommandHandler(
+        "check", check_command_with_city))
+    application.add_handler(CommandHandler(
+        "subscribe", start_recurring_command_with_city))
     application.add_handler(CommandHandler(
         "unsubscribe", stop_recurring_command))
 
