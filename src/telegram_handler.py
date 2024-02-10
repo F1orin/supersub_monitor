@@ -4,6 +4,7 @@ import supersub
 from functools import partial
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
+from datetime import time, timezone
 
 log = logging.getLogger(__name__)
 
@@ -39,12 +40,6 @@ async def check_command(update: Update, context: ContextTypes.DEFAULT_TYPE, city
         await telegram_message.edit_text(f'Selenium WebDriverException occured')
 
 
-async def send_message(context: ContextTypes.DEFAULT_TYPE, city: str) -> None:
-    """Send the message."""
-    job = context.job
-    await context.bot.send_message(job.chat_id, text=f'City={city}')
-
-
 def remove_jobs(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Remove all jobs from the queue."""
     current_jobs = context.job_queue.jobs()
@@ -53,13 +48,28 @@ def remove_jobs(context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def start_recurring_command(update: Update, context: ContextTypes.DEFAULT_TYPE, city: str) -> None:
-    """Start regular checks for SuperSub matches."""
+    """
+    Start regular checks for SuperSub matches.
+    The checks run every day at 12:00 and 19:00 UTC.
+    """
     chat_id = update.effective_message.chat_id
-    send_message_with_city = partial(send_message, city=city)
-    context.job_queue.run_repeating(
-        send_message_with_city, interval=5, chat_id=chat_id, name=str(chat_id))
-    text = 'Recurring updates started'
-    await update.message.reply_text(text)
+
+    async def check_wrapper(context: ContextTypes.DEFAULT_TYPE):
+        await check_command(update, context, city)
+
+    # 13h check
+    time_day = time(hour=12, tzinfo=timezone.utc)
+    context.job_queue.run_daily(
+        check_wrapper, time=time_day, chat_id=chat_id, name=f'day_{chat_id}')
+    text_day = 'Recurring updates for 13h00 started'
+    await update.message.reply_text(text_day)
+
+    # 20h check
+    time_evening = time(hour=19, tzinfo=timezone.utc)
+    context.job_queue.run_daily(
+        check_wrapper, time=time_evening, chat_id=chat_id, name=f'evening_{chat_id}')
+    text_evening = 'Recurring updates for 20h00 started'
+    await update.message.reply_text(text_evening)
 
 
 async def stop_recurring_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
