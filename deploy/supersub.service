@@ -6,7 +6,7 @@ After=network.target
 
 [Service]
 ExecStart=/opt/supersub_monitor/.venv/bin/python /opt/supersub_monitor/src/main.py
-WorkingDirectory=/opt/supersub_monitor/src
+WorkingDirectory=/opt/supersub_monitor
 Restart=always
 
 [Install]
