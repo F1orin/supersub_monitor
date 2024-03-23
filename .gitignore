@@ -30,4 +30,3 @@ venv/
 *.swp
 .env
 chromedriver_macos
-chromedriver_linux
