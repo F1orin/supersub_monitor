@@ -9,6 +9,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
 
 log = logging.getLogger(__name__)
 
@@ -24,70 +25,28 @@ CHROME_PATH_MAC = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 CHROME_PATH_LINUX = '/usr/bin/google-chrome-stable'
 
 
-class UnsupportedOSError(Exception):
-    pass
-
-
-def get_driver_path():
-    path_prefix = './drivers/'
-    path = None
-    system = platform.system()
-    if system == SYSTEM_DARWIN:
-        log.info('Selecting chromedriver for MacOS')
-        path = path_prefix + CHROMEDRIVER_NAME_MAC
-    elif system == SYSTEM_LINUX:
-        log.info('Selecting chromedriver for Linux')
-        path = path_prefix + CHROMEDRIVER_NAME_LINUX
-    else:
-        raise UnsupportedOSError(
-            f'Unsupported operating system detected: {system}')
-    return path
-
-
-def get_chrome_path():
-    path = None
-    current_os = os.getenv('OS')
-    if current_os == SYSTEM_DARWIN:
-        path = CHROME_PATH_MAC
-    elif current_os == SYSTEM_LINUX:
-        path = CHROME_PATH_LINUX
-    else:
-        raise UnsupportedOSError(
-            f'Unsupported operating system specified in env: {current_os}')
-    return path
-
-
 def get_driver():
-    time.sleep(3)
+    time.sleep(2)
 
-    try:
-        chrome_driver_path = get_driver_path()
-    except UnsupportedOSError as driver_error:
-        log.error(f'Could not get Chromedriver path: {driver_error}')
-        raise
-
-    chrome_service = Service(chrome_driver_path)
+    # Set up Chrome options
     chrome_options = Options()
-
-    try:
-        chrome_path = get_chrome_path()
-        chrome_options.binary_location = chrome_path
-    except UnsupportedOSError as chrome_error:
-        log.error(f'Could not get Chrome path: {chrome_error}')
-        raise
-
     chrome_options.add_argument('--headless')
     chrome_options.add_argument('--no-sandbox')
+
+    # Use ChromeDriverManager to get the appropriate driver path
+    chrome_driver_path = ChromeDriverManager().install()
+
+    # Start Chrome service
+    chrome_service = Service(chrome_driver_path)
+
+    # Create Chrome WebDriver instance
     driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
+    
     return driver
 
 
 def parse_available_matches(city: str) -> list:
-    try:
-        driver = get_driver()
-    except UnsupportedOSError as error:
-        log.error(f'Could not get Chromedriver: {error}')
-        raise
+    driver = get_driver()
 
     userid = os.getenv('URBANSOCCER_AUTH_USERID')
     token = os.getenv('URBANSOCCER_AUTH_TOKEN')
