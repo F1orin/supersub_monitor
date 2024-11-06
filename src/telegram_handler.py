@@ -32,9 +32,6 @@ async def check_command(update: Update, context: ContextTypes.DEFAULT_TYPE, city
         matches_data = supersub.parse_available_matches(city)
         matches_message = prepare_message(city, matches_data)
         await telegram_message.edit_text(matches_message)
-    except supersub.UnsupportedOSError as os_error:
-        log.exception('Unsupported OS exceptions occured')
-        await telegram_message.edit_text(f'Error occured: {os_error}')
     except selenium.common.exceptions.WebDriverException as driver_error:
         log.exception('Selenium WebDriverException occured')
         await telegram_message.edit_text(f'Selenium WebDriverException occured')
