@@ -25,23 +25,27 @@ CHROME_PATH_MAC = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 CHROME_PATH_LINUX = '/usr/bin/google-chrome-stable'
 
 
-def get_driver():
+def get_driver() -> webdriver.Chrome:
+    """Set up and return a headless Chrome WebDriver instance."""
     time.sleep(2)
 
-    # Set up Chrome options
     chrome_options = Options()
     chrome_options.add_argument('--headless')
     chrome_options.add_argument('--no-sandbox')
 
-    # Use ChromeDriverManager to get the appropriate driver path
+    log.debug("Checking for ChromeDriver updates...")
     chrome_driver_path = ChromeDriverManager().install()
+    log.info(f"Using ChromeDriver at: {chrome_driver_path}")
 
-    # Start Chrome service
     chrome_service = Service(chrome_driver_path)
-
-    # Create Chrome WebDriver instance
     driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
-    
+
+    driver_version = driver.capabilities.get("chrome", {}).get("chromedriverVersion")
+    browser_version = driver.capabilities.get("browserVersion")
+    log.info(f"ChromeDriver version: {driver_version}")
+    log.info(f"Chrome browser version: {browser_version}")
+    log.debug("ChromeDriver started successfully.")
+
     return driver
 
 
