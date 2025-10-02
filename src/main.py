@@ -8,7 +8,11 @@ import logging
 import os
 
 from dotenv import load_dotenv
+
+from chromedriver_manager import get_driver, shutdown_driver
 from telegram_handler import start_telegram_bot
+
+log = logging.getLogger(__name__)
 
 
 def main():
@@ -40,7 +44,11 @@ def main():
         logging.error("Required environment variables are missing.")
         return
 
-    start_telegram_bot(telegram_token, city)
+    driver = get_driver()
+    try:
+        start_telegram_bot(telegram_token, city, driver)
+    finally:
+        shutdown_driver()
 
 
 if __name__ == "__main__":

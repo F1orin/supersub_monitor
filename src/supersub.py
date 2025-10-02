@@ -8,12 +8,9 @@ import time
 
 from dotenv import load_dotenv
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.support.ui import Select, WebDriverWait
 
 # Constants
 SYSTEM_DARWIN = 'Darwin'
@@ -23,39 +20,12 @@ CHROMEDRIVER_NAME_LINUX = 'chromedriver_linux'
 CHROME_PATH_MAC = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 CHROME_PATH_LINUX = '/usr/bin/google-chrome-stable'
 
-# Logger setup
 log = logging.getLogger(__name__)
 
-# Load environment variables
 load_dotenv()
 
 
-def get_driver() -> webdriver.Chrome:
-    """Set up and return a headless Chrome WebDriver instance."""
-    time.sleep(2)
-
-    chrome_options = Options()
-    chrome_options.add_argument('--headless')
-    chrome_options.add_argument('--no-sandbox')
-
-    log.debug("Checking for ChromeDriver updates...")
-    chrome_driver_path = ChromeDriverManager().install()
-    log.info(f"Using ChromeDriver at: {chrome_driver_path}")
-
-    chrome_service = Service(chrome_driver_path)
-    driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
-
-    driver_version = driver.capabilities.get(
-        "chrome", {}).get("chromedriverVersion")
-    browser_version = driver.capabilities.get("browserVersion")
-    log.info(f"ChromeDriver version: {driver_version}")
-    log.info(f"Chrome browser version: {browser_version}")
-    log.debug("ChromeDriver started successfully.")
-
-    return driver
-
-
-def parse_available_matches(city: str) -> list:
+def parse_available_matches(driver: webdriver.Chrome, city: str) -> list:
     """
     Parse available matches for the given city using Selenium.
 
@@ -65,46 +35,41 @@ def parse_available_matches(city: str) -> list:
     Returns:
         list: A list of matches found.
     """
-    driver = get_driver()
+    userid = os.getenv('URBANSOCCER_AUTH_USERID')
+    token = os.getenv('URBANSOCCER_AUTH_TOKEN')
 
-    try:
-        userid = os.getenv('URBANSOCCER_AUTH_USERID')
-        token = os.getenv('URBANSOCCER_AUTH_TOKEN')
+    driver.get('https://my.urbansoccer.fr/')
 
-        driver.get('https://my.urbansoccer.fr/')
+    log.debug('Loading auth credentials...')
+    driver.execute_script(
+        f"localStorage.setItem('auth-userid', '{userid}');")
+    driver.execute_script(
+        f"localStorage.setItem('auth-token', '{token}');")
+    log.debug('Auth credentials loaded successfully.')
 
-        log.debug('Loading auth credentials...')
-        driver.execute_script(
-            f"localStorage.setItem('auth-userid', '{userid}');")
-        driver.execute_script(
-            f"localStorage.setItem('auth-token', '{token}');")
-        log.debug('Auth credentials loaded successfully.')
+    driver.get('https://my.urbansoccer.fr/')
+    driver.get('https://my.urbansoccer.fr/supersub/findMatch')
 
-        driver.get('https://my.urbansoccer.fr/')
-        driver.get('https://my.urbansoccer.fr/supersub/findMatch')
+    wait = WebDriverWait(driver, 10)
+    wait.until(EC.presence_of_element_located(
+        (By.XPATH, '//*[@id="centerPicker"]/option[text()="Nantes"]')))
+    log.debug('List of cities has loaded')
 
-        wait = WebDriverWait(driver, 10)
-        wait.until(EC.presence_of_element_located(
-            (By.XPATH, '//*[@id="centerPicker"]/option[text()="Nantes"]')))
-        log.debug('List of cities has loaded')
+    element = driver.find_element(By.ID, 'centerPicker')
+    select = Select(element)
+    select.select_by_visible_text(city)
+    log.debug('City selected in the list.')
 
-        element = driver.find_element(By.ID, 'centerPicker')
-        select = Select(element)
-        select.select_by_visible_text(city)
-        log.debug('City selected in the list.')
-
-        time.sleep(1)
-        dates = driver.find_elements(
-            By.XPATH, '//article[contains(@class, "o-day") and contains(@class, "disabled")]')
-        matches = []
-        for date in dates:
-            spans = date.find_elements(By.XPATH, './span')
-            matches_per_day = [None] * 2
-            for i, span in enumerate(spans):
-                matches_per_day[i] = span.text
-            matches.append(matches_per_day)
-        log.debug(f'Matches found: {matches}')
-    finally:
-        driver.quit()
+    time.sleep(1)
+    dates = driver.find_elements(
+        By.XPATH, '//article[contains(@class, "o-day") and contains(@class, "disabled")]')
+    matches = []
+    for date in dates:
+        spans = date.find_elements(By.XPATH, './span')
+        matches_per_day = [None] * 2
+        for i, span in enumerate(spans):
+            matches_per_day[i] = span.text
+        matches.append(matches_per_day)
+    log.debug(f'Matches found: {matches}')
 
     return matches

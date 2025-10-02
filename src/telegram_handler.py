@@ -5,11 +5,12 @@ Handles Telegram commands, scheduling, and message formatting.
 
 import logging
 
-from functools import partial
 from datetime import time, timezone
+from functools import partial
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.remote.webdriver import WebDriver
 
 import supersub
 
@@ -39,13 +40,18 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await update.message.reply_text(help_message)
 
 
-async def check_command(update: Update, context: ContextTypes.DEFAULT_TYPE, city: str) -> None:
+async def check_command(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    city: str,
+    driver: WebDriver,
+) -> None:
     """
     Check for available Supersub matches when the command /check is issued.
     """
     telegram_message = await update.message.reply_text('Checking available matches...')
     try:
-        matches_data = supersub.parse_available_matches(city)
+        matches_data = supersub.parse_available_matches(driver, city)
         matches_message = prepare_message(city, matches_data)
         await telegram_message.edit_text(matches_message)
     except WebDriverException:
@@ -62,15 +68,20 @@ def remove_jobs(context: ContextTypes.DEFAULT_TYPE) -> None:
         job.schedule_removal()
 
 
-async def start_recurring_command(update: Update, context: ContextTypes.DEFAULT_TYPE, city: str) -> None:
+async def start_recurring_command(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    city: str,
+    driver: WebDriver,
+) -> None:
     """
     Start regular checks for SuperSub matches.
     The checks run every day at 12:00 and 19:00 UTC.
     """
     chat_id = update.effective_message.chat_id
 
-    async def check_wrapper(context: ContextTypes.DEFAULT_TYPE):
-        await check_command(update, context, city)
+    async def check_wrapper(context: ContextTypes.DEFAULT_TYPE) -> None:
+        await check_command(update, context, city, driver)
 
     # 13h check
     time_day = time(hour=12, tzinfo=timezone.utc)
@@ -93,16 +104,18 @@ async def stop_recurring_command(update: Update, context: ContextTypes.DEFAULT_T
     await update.message.reply_text('Recurring updates stopped')
 
 
-def start_telegram_bot(token: str, city: str) -> None:
+def start_telegram_bot(token: str, city: str, driver: WebDriver) -> None:
     """
     Start the Telegram bot application and register command handlers.
     """
     application = Application.builder().token(token).build()
 
     check_command_with_city = partial(
-        check_command, city=city)
+        check_command, city=city, driver=driver
+    )
     start_recurring_command_with_city = partial(
-        start_recurring_command, city=city)
+        start_recurring_command, city=city, driver=driver
+    )
 
     application.add_handler(
         CommandHandler("help", help_command)
