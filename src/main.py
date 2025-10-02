@@ -35,19 +35,29 @@ def main():
         log_level = logging.WARNING
     logging.basicConfig(level=log_level)
 
+    log.info("Logging configured at %s", logging.getLevelName(log_level))
+
+    log.debug("Loading .env file")
     load_dotenv()
+    log.debug("Environment variables loaded")
 
     telegram_token = os.getenv('TELEGRAM_BOT_TOKEN')
     city = os.getenv('URBANSOCCER_TARGET_CITY')
 
-    if not telegram_token or not city:
-        logging.error("Required environment variables are missing.")
+    log.info(f'Target city set to {city}')
+
+    try:
+        chrome_driver = get_driver()
+    except Exception:
+        log.exception("Failed to initialize ChromeDriver")
         return
 
-    driver = get_driver()
+    log.info("ChromeDriver ready")
     try:
-        start_telegram_bot(telegram_token, city, driver)
+        log.info(f'Starting Telegram bot for city {city}')
+        start_telegram_bot(telegram_token, city, chrome_driver)
     finally:
+        log.info("Shutting down ChromeDriver")
         shutdown_driver()
 
 
