@@ -1,11 +1,16 @@
 import logging
 import os
+import argparse
 from dotenv import load_dotenv
 from telegram_handler import start_telegram_bot
 
 
 def main():
-    logging.basicConfig(level=logging.WARNING)
+    parser = argparse.ArgumentParser(description="Supersub Monitor")
+    parser.add_argument('--debug', action='store_true', help='Enable debug logging')
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.WARNING)
 
     load_dotenv()
 
