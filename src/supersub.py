@@ -50,6 +50,15 @@ def get_driver() -> webdriver.Chrome:
 
 
 def parse_available_matches(city: str) -> list:
+    """
+    Parse available matches for the given city using Selenium.
+
+    Args:
+        city (str): The city to select in the UI.
+
+    Returns:
+        list: A list of matches found.
+    """
     driver = get_driver()
 
     userid = os.getenv('URBANSOCCER_AUTH_USERID')
@@ -57,10 +66,10 @@ def parse_available_matches(city: str) -> list:
 
     driver.get('https://my.urbansoccer.fr/')
 
-    log.debug('Loading auth creads...')
+    log.debug('Loading auth credentials...')
     driver.execute_script(f"localStorage.setItem('auth-userid', '{userid}');")
     driver.execute_script(f"localStorage.setItem('auth-token', '{token}');")
-    log.debug('...auth creds loaded successfully')
+    log.debug('Auth credentials loaded successfully.')
 
     driver.get('https://my.urbansoccer.fr/')
     driver.get('https://my.urbansoccer.fr/supersub/findMatch')
@@ -73,7 +82,7 @@ def parse_available_matches(city: str) -> list:
     element = driver.find_element(By.ID, 'centerPicker')
     select = Select(element)
     select.select_by_visible_text(city)
-    log.debug('City is selected in the list')
+    log.debug('City selected in the list.')
 
     time.sleep(1)
     dates = driver.find_elements(
@@ -85,7 +94,7 @@ def parse_available_matches(city: str) -> list:
         for i, span in enumerate(spans):
             matches_per_day[i] = span.text
         matches.append(matches_per_day)
-    log.debug(f'These are the matches found: {matches}')
+    log.debug(f'Matches found: {matches}')
 
     driver.quit()
 
