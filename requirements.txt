@@ -15,7 +15,7 @@ packaging==25.0
 pluggy==1.6.0
 Pygments==2.20.0
 PySocks==1.7.1
-pytest==9.0.2
+pytest==9.0.3
 python-dotenv==1.2.2
 python-telegram-bot==22.5
 pytz==2025.2
