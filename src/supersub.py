@@ -19,6 +19,8 @@ CHROMEDRIVER_NAME_MAC = 'chromedriver_macos'
 CHROMEDRIVER_NAME_LINUX = 'chromedriver_linux'
 CHROME_PATH_MAC = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 CHROME_PATH_LINUX = '/usr/bin/google-chrome-stable'
+URBANSOCCER_BASE_URL = 'https://myurban.fr'
+URBANSOCCER_SUPERSUB_URL = f'{URBANSOCCER_BASE_URL}/supersub/findMatch'
 
 log = logging.getLogger(__name__)
 
@@ -38,7 +40,7 @@ def parse_available_matches(driver: webdriver.Chrome, city: str) -> list:
     userid = os.getenv('URBANSOCCER_AUTH_USERID')
     token = os.getenv('URBANSOCCER_AUTH_TOKEN')
 
-    driver.get('https://my.urbansoccer.fr/')
+    driver.get(URBANSOCCER_BASE_URL)
 
     log.debug('Loading auth credentials...')
     driver.execute_script(
@@ -47,8 +49,8 @@ def parse_available_matches(driver: webdriver.Chrome, city: str) -> list:
         f"localStorage.setItem('auth-token', '{token}');")
     log.debug('Auth credentials loaded successfully.')
 
-    driver.get('https://my.urbansoccer.fr/')
-    driver.get('https://my.urbansoccer.fr/supersub/findMatch')
+    driver.get(URBANSOCCER_BASE_URL)
+    driver.get(URBANSOCCER_SUPERSUB_URL)
 
     wait = WebDriverWait(driver, 10)
     wait.until(EC.presence_of_element_located(
