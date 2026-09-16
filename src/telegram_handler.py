@@ -12,6 +12,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.remote.webdriver import WebDriver
 
+from errors import UrbanSoccerAuthenticationError
 import supersub
 
 
@@ -54,6 +55,12 @@ async def check_command(
         matches_data = supersub.parse_available_matches(driver, city)
         matches_message = prepare_message(city, matches_data)
         await telegram_message.edit_text(matches_message)
+    except UrbanSoccerAuthenticationError:
+        log.warning('UrbanSoccer authentication has expired')
+        await telegram_message.edit_text(
+            'Your UrbanSoccer session has expired. '
+            'Please update the authentication token.'
+        )
     except WebDriverException:
         log.exception('Selenium WebDriverException occurred')
         await telegram_message.edit_text('Selenium WebDriverException occurred')

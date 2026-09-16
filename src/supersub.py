@@ -5,12 +5,15 @@ Supersub: Selenium-based UrbanSoccer match parser and ChromeDriver manager.
 import logging
 import os
 import time
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select, WebDriverWait
+
+from errors import UrbanSoccerAuthenticationError
 
 # Constants
 SYSTEM_DARWIN = 'Darwin'
@@ -25,6 +28,16 @@ URBANSOCCER_SUPERSUB_URL = f'{URBANSOCCER_BASE_URL}/supersub/findMatch'
 log = logging.getLogger(__name__)
 
 load_dotenv()
+
+
+def _is_urbansoccer_login_url(url: str) -> bool:
+    """Return whether URL is UrbanSoccer's authentication page."""
+    parsed_url = urlparse(url)
+    return (
+        parsed_url.scheme == 'https'
+        and parsed_url.hostname == 'myurban.fr'
+        and parsed_url.path.rstrip('/') == '/login'
+    )
 
 
 def parse_available_matches(driver: webdriver.Chrome, city: str) -> list:
@@ -53,6 +66,16 @@ def parse_available_matches(driver: webdriver.Chrome, city: str) -> list:
     driver.get(URBANSOCCER_SUPERSUB_URL)
 
     wait = WebDriverWait(driver, 10)
+    wait.until(
+        lambda current_driver: (
+            _is_urbansoccer_login_url(current_driver.current_url)
+            or current_driver.find_elements(By.ID, 'centerPicker')
+        )
+    )
+
+    if _is_urbansoccer_login_url(driver.current_url):
+        raise UrbanSoccerAuthenticationError
+
     wait.until(EC.presence_of_element_located(
         (By.XPATH, '//*[@id="centerPicker"]/option[text()="Nantes"]')))
     log.debug('List of cities has loaded')
