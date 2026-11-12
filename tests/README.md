@@ -4,6 +4,12 @@ Basic tests to verify the project runs correctly and dependencies work fine.
 
 ## Running Tests
 
+Create and activate a virtual environment with Python 3.11 (matching CI), then install the generated development requirements from the repository root:
+
+```bash
+python -m pip install -r requirements-dev.txt
+```
+
 ```bash
 # Run all tests
 python -m pytest tests/
